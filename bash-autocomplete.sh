@@ -1,6 +1,7 @@
-if grep -q CONFIG_GENERATOR_COMPLETE=source_bash ~/.bashrc
+_CONFIG_GENERATOR_COMPLETE=bash_source config-generator > ~/.bash_config_generator_autocomplete.sh
+if grep -q ~/.bash_config_generator_autocomplete.sh ~/.bashrc
 then
 	echo "Автозаполнение для config-generator уже включено в bash"
 else
-	echo 'eval "$(_CONFIG_GENERATOR_COMPLETE=source_bash config-generator)"' >> ~/.bashrc
+	echo . ~/.bash_config_generator_autocomplete.sh >> ~/.bashrc
 fi
