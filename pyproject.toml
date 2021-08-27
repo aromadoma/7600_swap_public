@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "7600_swap_tool"
+version = "0.1.0"
+description = "Moving services from cisco 7600 to NCS540 with EVPN"
+authors = ["Roman <krp536@gmail.com>"]
+packages = [
+  { include = "config_generator" },
+]
+
+[tool.poetry.scripts]
+config-generator = "config_generator.scripts.config_generator:main"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+netmiko = "^3.4.0"
+click = "^8.0.1"
+openpyxl = "^3.0.7"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
