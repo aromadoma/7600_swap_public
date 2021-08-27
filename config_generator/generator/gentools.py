@@ -1,11 +1,8 @@
 import re
-import os
 import logging
-import json
 from config_generator.connections import connect, get_hostname
 from config_generator.fstools import get_script_parameters
-from config_generator.parameters import get_se_loopbacks30, get_evpn_groups, \
-    get_table_keys, get_ncs_ports_ranges
+from config_generator.parameters import get_evpn_groups, get_ncs_ports_ranges
 
 ############################
 # CONSTANTS

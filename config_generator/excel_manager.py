@@ -1,6 +1,6 @@
+import click
 from openpyxl import load_workbook, Workbook
 from openpyxl.styles import Alignment, Font, PatternFill
-import click
 from config_generator.generator.gentools import format_data_from_table
 from config_generator.fstools import create_preparing_dir, get_homedir_path, \
     get_billing_path

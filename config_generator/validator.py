@@ -1,7 +1,5 @@
 import re
 import click
-# from config_generator.generator.gentools import create_policy
-# from config_generator.connections import connect, get_hostname, check_ping
 
 
 def format_syntax_error(string):

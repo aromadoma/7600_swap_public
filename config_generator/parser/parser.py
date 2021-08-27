@@ -2,7 +2,7 @@ from getpass import getpass
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from config_generator.excel_manager import create_preparation_table
-from config_generator.connections import get_hostname, connect
+from config_generator.connections import connect
 from config_generator.parser.parstools import *
 
 ####################################################

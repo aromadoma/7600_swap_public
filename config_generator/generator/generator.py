@@ -3,24 +3,20 @@ import re
 import os
 import click
 import ipaddress
-import json
 import logging
 from config_generator.fstools import get_homedir_path, get_preparing_path
 from config_generator.connections import connect, get_hostname
-from config_generator.excel_manager import load_data_from_table, get_data_from_sheet
+from config_generator.excel_manager import load_data_from_table
 from config_generator.parameters import get_se_loopbacks30, get_ios_neighbors, \
     get_xr_neighbors, get_xe_neighbors, get_junos_neighbors
-from config_generator.generator.gentools import AccessList, RemoteNeighbor, \
-    get_acl_list, get_unique_acl_list, split_neighbors_to_group, sort_aggregations, \
-    set_evpn_groups_for_vlan, set_evpn_groups_for_xc, get_evi_id_for_vlan, \
-    get_evi_id_for_xc, get_pppoe_xc_diff, get_pppoe_neighbors, get_old_neighbor_lo30, \
-    need_convertation_to_vlan, convert_xc_to_vlan, get_fake_scheme, create_acl_config, \
-    format_acl_name_for_se, create_remotes_config, \
-    format_vlan_list, format_neighbor_list, format_xc_list, \
-    get_esi_template, get_7600s_lo30, create_ncs_hostname, get_bgp_vpnv4_neighbors, \
+from config_generator.generator.gentools import get_acl_list, get_unique_acl_list, \
+    split_neighbors_to_group, set_evpn_groups_for_vlan, set_evpn_groups_for_xc, \
+    get_evi_id_for_vlan, get_evi_id_for_xc, get_pppoe_xc_diff, get_pppoe_neighbors, \
+    need_convertation_to_vlan, convert_xc_to_vlan, get_fake_scheme, \
+    format_acl_name_for_se, create_remotes_config, get_esi_template, get_7600s_lo30, \
+    create_ncs_hostname, get_bgp_vpnv4_neighbors, \
     create_init_config, write_bgp_vpnv4_config, write_vrf_config, write_acl_config, \
-    write_aggregations_config, write_interlinks_config, write_uplink_config, \
-    format_data_from_table
+    write_aggregations_config, write_interlinks_config, write_uplink_config
 from datetime import datetime
 from openpyxl import load_workbook
 
