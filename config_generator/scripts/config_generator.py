@@ -161,7 +161,7 @@ def command_validate(username, password, ip_addresses):
 
 
 @main.command('ssh-enable', help_priority=6)
-@click.argument('ip_addresses', nargs=-1)
+@click.argument('ncs_addresses', nargs=-1)
 @click.option("-u", "username",
               type=str,
               prompt='Введите имя пользователя',
@@ -235,7 +235,7 @@ def command_check_xc():
 
 
 @command_check_xc.command('state-before')
-@click.argument('ip_addresses', nargs=-1)
+@click.argument('old_pe_addresses', nargs=2)
 @click.option("-u", "username",
               type=str,
               prompt='Введите имя пользователя',
@@ -245,14 +245,14 @@ def command_check_xc():
               prompt='Введите пароль',
               hide_input=True,
               help='Password for ssh connection')
-def command_check_xc_before(username, password, ip_addresses):
+def command_check_xc_before(username, password, old_pe_addresses):
     """Get XC states before swap to compare later"""
-    check_xc_state_before(username, password, *ip_addresses)
+    check_xc_state_before(username, password, *old_pe_addresses)
 
 
 @command_check_xc.command('state-after')
+@click.argument('ncs_addresses', nargs=2)
 @click.argument('se_location')
-@click.argument('ncs_adresses', nargs=-1)
 @click.option("-u", "username",
               type=str,
               prompt='Введите имя пользователя',
@@ -265,13 +265,13 @@ def command_check_xc_before(username, password, ip_addresses):
 @click.option("--only",
               type=click.Choice(['SE', 'NCS'], case_sensitive=False),
               help='Check xc only on SE or NCS')
-def command_xc_check_after(username, password, se_location, only, ncs_adresses):
+def command_xc_check_after(username, password, se_location, only, ncs_addresses):
     """Get XC states after swap"""
-    check_xc_state_after(username, password, se_location, *ncs_adresses, only=only)
+    check_xc_state_after(username, password, se_location, *ncs_addresses, only=only)
 
 
 @command_check_xc.command('mac')
-@click.argument('pe_ip')
+@click.argument('old_pe_address')
 @click.argument('se_location')
 @click.option("-u", "username",
               type=str,
@@ -282,12 +282,12 @@ def command_xc_check_after(username, password, se_location, only, ncs_adresses):
               prompt='Введите пароль',
               hide_input=True,
               help='Password for ssh connection')
-@click.option("--log",
+@click.option("--errors",
               is_flag=True,
-              help='Show info about all xconnects')
-def command_check_xc_mac(username, password, pe_ip, se_location, log):
+              help='Show only BDs without mac from PW')
+def command_check_xc_mac(username, password, old_pe_address, se_location, errors):
     """Check if there are mac addresses from pseudowire in EVPN"""
-    check_xc_mac(username, password, pe_ip, se_location, log)
+    check_xc_mac(username, password, old_pe_address, se_location, errors)
 
 
 if __name__ == '__main__':

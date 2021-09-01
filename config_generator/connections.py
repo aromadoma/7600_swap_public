@@ -47,20 +47,17 @@ def connect(username, password, ip,
 
 def get_hostname(connection):
     """Get hostname from device for which the ssh-connection is established"""
-    print(connection)
     hostname = connection.find_prompt().replace('#', '')
     hostname = re.sub(r'RP/\d/RP\d/CPU\d:', '', hostname)  # if IOS-XR
     return hostname
 
 
-def get_pe_location(connection):
-    hostname = get_hostname(connection)
+def get_pe_location(hostname):
     return re.search(r'(?:RP/\d/RP\d/CPU\d:)?(.*?-.*?)-', hostname).group(1)
 
 
-# def get_ncs_location(connection):
-#     hostname = get_hostname(connection)
-#     return re.search(r'RP/\d/RP\d/CPU\d:(.*?-.*?)-', hostname).group(1)
+def get_pe_location_from_hostname(hostname):
+    return re.search(r'(?:RP/\d/RP\d/CPU\d:)?(.*?-.*?)-', hostname).group(1)
 
 
 def connect_to_devices(username, password, *args, device_type='cisco_ios'):
@@ -105,7 +102,6 @@ def check_configuration(username, password, *args):
         connection = connect(username, password, ip, device_type='cisco_xr')
         hostname = get_hostname(connection)
         config_filename = f'{hostname}-configuration.txt'
-        print(config_filename)
         validate_config(connection, config_filename)
         connection.disconnect()
 
@@ -144,12 +140,13 @@ def enable_ssh(username, password, *args, key_length='1024'):
         telnet_connection = connect(username, password, ip,
                                     device_type='cisco_xr_telnet')
         hostname = get_hostname(telnet_connection)
+
         if not is_ssh_configured(telnet_connection):
             if click.confirm(f'SSH на {hostname} не настроен, или настроен неверно '
                              f'(VRF не MGMT). Включить?', default=True):
                 print('Добавляем конфиг для ssh...')
                 configure_ssh(telnet_connection)
-                print('Генерируем ключ...')
+                # print('Генерируем ключ...')
                 # generate_rsa_key(telnet_connection, key_length)
                 print('Готово.')
         else:
