@@ -143,7 +143,7 @@ def enable_ssh(username, password, *args, key_length='1024'):
 
         if not is_ssh_configured(telnet_connection):
             if click.confirm(f'SSH на {hostname} не настроен, или настроен неверно '
-                             f'(VRF не MGMT). Включить?', default=True):
+                             f'(VRF не MGMT).\nВключить?', default=True):
                 print('Добавляем конфиг для ssh...')
                 configure_ssh(telnet_connection)
                 # print('Генерируем ключ...')

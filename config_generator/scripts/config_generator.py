@@ -175,9 +175,9 @@ def command_validate(username, password, ip_addresses):
               prompt='Введите пароль',
               hide_input=True,
               help='Password for ssh connection')
-def command_enable_ssh(username, password, ip_addresses):
+def command_enable_ssh(username, password, ncs_addresses):
     """Check and enable ssh2 server on NCS"""
-    enable_ssh(username, password, *ip_addresses)
+    enable_ssh(username, password, *ncs_addresses)
 
 
 @main.command('apply', help_priority=5)
@@ -193,7 +193,8 @@ def command_enable_ssh(username, password, ip_addresses):
               help='Password for ssh connection')
 def command_apply_config(username, password, ip_addresses):
     """Apply created configuration on NCS"""
-    apply_config(username, password, *ip_addresses)
+    # apply_config(username, password, *ip_addresses)
+    print('\n\u001b[31mЗАЛИВАЙ РУКАМИ!\u001b[0m')
 
 
 @main.group('homedir')

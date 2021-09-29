@@ -1,5 +1,6 @@
 import re
 import click
+import logging
 
 
 def format_syntax_error(string):
@@ -70,11 +71,14 @@ def start_validator_check(connection):
 
 
 def load_config(connection, config_filename):
+    logger = logging.getLogger(f'load_config')
+    logger.info('Starting function')
+
     connection.config_mode()
     click.echo('Загружаем конфигурацию из файла...')
     load_output = connection.send_command(f'load harddisk:{config_filename}',
                                           expect_string=r'RP\/\d\/RP\d\/CPU\d:.*#',
-                                          max_loops=1000,
+                                          max_loops=5000,
                                           strip_prompt=True)
     return 1 if has_syntax_errors(load_output) else 0
 

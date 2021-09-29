@@ -205,7 +205,7 @@ def check_xc_mac(username, password, pe_ip, se_location, errors=False):
                 if has_mac_from_xc(output):
                     if not errors:
                         click.echo(f'XC {xc["remote_ip"]} pw-id {xc["pwid"]} '
-                                   f'(EVI ID: {evi_id}): маки есть')
+                                   f'(EVI ID: {evi_id}): Маки есть')
                 else:
                     click.echo(f'XC {xc["remote_ip"]} pw-id {xc["pwid"]} '
                                f'(EVI ID: {evi_id}): \u001b[31mМаки не найдены\u001b[0m')
