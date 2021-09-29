@@ -17,7 +17,7 @@ logger.info(f'START')
 ####################################################
 
 
-def main(ssh_username, ssh_password, pe1_ip, pe2_ip):
+def main(ssh_username, ssh_password, pe1_ip, pe2_ip, one_pe=False):
 
     start_time = datetime.now()
 
@@ -38,7 +38,7 @@ def main(ssh_username, ssh_password, pe1_ip, pe2_ip):
         pe2_ip = input('Введите ip-адрес PE-02: ')
     logging.info(f'PE-02\'s ip address: {pe2_ip}')
     while True:
-        if pe2_ip == pe1_ip:
+        if pe2_ip == pe1_ip and not one_pe:
             click.echo('\u001b[31mАдрес PE-02 совпадает с PE-01.\u001b[0m\n')
             logging.info('Entered address is the same as PE1')
             pe1_ip = input('Введите ip-адрес PE-01: ')

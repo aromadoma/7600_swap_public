@@ -178,6 +178,23 @@ class RemoteNeighbor:
 # FUNCTIONS
 ############################
 
+def is_shaping_policy(policy_name):
+    return True if re.search(r'(\d+)(m|k)', policy_name) else False
+
+
+def get_shaping_policies(vlans):
+    policies = set()
+    for vlan in vlans:
+        policy_in = vlan.get('svi_policy_in')
+        policy_out = vlan.get('svi_policy_out')
+        if policy_in and is_shaping_policy(policy_in):
+            policies.add(policy_in)
+        if policy_out and is_shaping_policy(policy_out):
+            policies.add(policy_out)
+
+    return policies
+
+
 def create_policy(name):
     policy_parameters = re.search(r'(\d+)(m|k)', name)
     if policy_parameters:
@@ -795,7 +812,7 @@ def is_xc_config(line):
     return True if line.startswith('l2vpn xconnect') else False
 
 
-def create_init_config(hostname, loopback2, loopback30):
+def write_init_config(hostname, loopback2, loopback30, ncs_config_file):
     init_config = [
         "service unsupported-transceiver\n",
         f"hostname {hostname}\n",
@@ -1116,8 +1133,7 @@ def create_init_config(hostname, loopback2, loopback30):
         " end-policy-map\n",
         "!\n"
     ]
-
-    return init_config
+    ncs_config_file.writelines(init_config)
 
 
 def write_bgp_vpnv4_config(bgp_vpnv4_neighbors, ncs_config_file):
@@ -1287,3 +1303,8 @@ def write_uplink_config(uplinks, hostname, ncs_config_file):
         neighbor['ncs_interface'] = [bundle_id]
 
         bundle_id += 1
+
+
+def write_policies_config(policies, ncs_config_file):
+    for policy in policies:
+        ncs_config_file.writelines(create_policy(policy))

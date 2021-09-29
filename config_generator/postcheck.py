@@ -204,7 +204,8 @@ def check_xc_mac(username, password, pe_ip, se_location, errors=False):
                 output = se_connection.send_command(f'show evpn evi vpn-id {evi_id} mac')
                 if has_mac_from_xc(output):
                     if not errors:
-                        click.echo(f'XC {xc["remote_ip"]} pw-id {xc["pwid"]}: маки есть')
+                        click.echo(f'XC {xc["remote_ip"]} pw-id {xc["pwid"]} '
+                                   f'(EVI ID: {evi_id}): маки есть')
                 else:
-                    click.echo(f'XC {xc["remote_ip"]} pw-id {xc["pwid"]}: '
-                               f'\u001b[31mМаки не найдены\u001b[0m')
+                    click.echo(f'XC {xc["remote_ip"]} pw-id {xc["pwid"]} '
+                               f'(EVI ID: {evi_id}): \u001b[31mМаки не найдены\u001b[0m')

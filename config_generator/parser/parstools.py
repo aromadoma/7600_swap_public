@@ -18,6 +18,15 @@ def parse_vlan_parameters(string):
     return vlan_id, vlan_name, vlan_interfaces
 
 
+def format_vlan_interfaces(interfaces):
+    formatted_interfaces = []
+    for interface in interfaces:
+        if interface.startswith("Po"):
+            interface = interface.replace("Po", "Port-channel")
+        formatted_interfaces.append(interface)
+    return formatted_interfaces
+
+
 def get_vlan_list(hostname, connection, max_num=None):
     """
 
@@ -44,7 +53,7 @@ def get_vlan_list(hostname, connection, max_num=None):
                     vlan = {'hostname': hostname,
                             'vlan_id': vlan_id,
                             'vlan_name': vlan_name,
-                            'vlan_interfaces': interfaces
+                            'vlan_interfaces': format_vlan_interfaces(interfaces)
                             }
                     vlan_list.append(vlan)
                     break
@@ -181,6 +190,10 @@ def format_int_description(string):
     description = re.sub(r'^-{,3}={,3}', '', string)
     description = re.sub(r'={,3}-{,3}$', '', description)
     return description
+
+
+def format_physint_name(name):
+    return re.sub("Po", "Port-channel", name)
 
 
 def format_physint_description(string):
@@ -435,7 +448,8 @@ def parse_physical_int_parameters(string):
 
 
 def get_portchannel_members(connection, interface):
-    output = connection.send_command(f'show etherchannel {interface.replace("Po", "")} '
+    output = connection.send_command(f'show etherchannel '
+                                     f'{interface.replace("Port-channel", "")} '
                                      f'port-channel')
     member_list = []
     for line in output.split(sep='\n'):
@@ -494,7 +508,7 @@ def get_physint_list(hostname, connection):
             # Рассматриваются интерфейсы без сабиков в UP:
             if not re.search(r'\.', name) and "down" not in status:
                 interface = {'hostname': hostname,
-                             'name': name,
+                             'name': format_physint_name(name),
                              'status': status,
                              'description': format_physint_description(description)
                              }
@@ -642,7 +656,6 @@ def add_comment(dictionary, value):
 def get_neighbor(interface, phys_interfaces):
     logger = logging.getLogger(f'get_neighbor')
     logger.info('Starting function')
-
     for phys_interface in phys_interfaces:
         if interface == phys_interface['name'] and phys_interface.get('neighbor'):
             return phys_interface.get('neighbor')
@@ -875,7 +888,10 @@ def get_xc_list(connection):
 
 def parse_xc_source_int(string):
     try:
-        return re.search(r'(((?:Po)|(?:Gi)|(?:Te)).*)\.', string).group(1)
+        source_int = re.search(r'(((?:Po)|(?:Gi)|(?:Te)).*)\.', string).group(1)
+        if re.search(r"Po\d+", source_int):
+            source_int = re.sub("Po", "Port-channel", source_int)
+        return source_int
     except AttributeError:
         return None
 
@@ -1021,6 +1037,7 @@ def merge_vlans(vlan1, vlan2):
 
     merged_vlan = vlan1
     merged_vlan['neighbors'] = merge_neighbors(vlan1, vlan2)
+    logger.info(f'Vlan {vlan2["vlan_id"]}: Merged neighbors: {merged_vlan["neighbors"]}')
     if vlan1.get('admin_state') != vlan2.get('admin_state'):
         merged_vlan['admin_state'] = None
         logger.info(f'Vlan {vlan2["vlan_id"]}: Changing admin_state to UP')
@@ -1084,9 +1101,9 @@ def get_unique_vlans(vlans):
                             )
                 # Пересекаются на L2:
                 if has_mutual_neighbor(vlan1, vlan2):
-                    merge_vlans(vlan1, vlan2)
                     logger.info(f'Vlan {vlan2["vlan_id"]}: '
                                 f'Mutual neighbors are found. Merging')
+                    unique_vlans.append(merge_vlans(vlan1, vlan2))
 
                 else:
                     # Не пересекаются:

@@ -5,6 +5,10 @@ install:
 	poetry build
 	python3 -m pip install --user dist/*.whl
 
+remove:
+	python3 -m pip uninstall 7600-swap-tool -y
+	rm dist/*
+
 reinstall:
 	python3 -m pip uninstall 7600-swap-tool -y
 	rm dist/*

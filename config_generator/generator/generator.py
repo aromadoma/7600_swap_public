@@ -15,8 +15,9 @@ from config_generator.generator.gentools import get_acl_list, get_unique_acl_lis
     need_convertation_to_vlan, convert_xc_to_vlan, get_fake_scheme, \
     format_acl_name_for_se, create_remotes_config, get_esi_template, get_7600s_lo30, \
     create_ncs_hostname, get_bgp_vpnv4_neighbors, \
-    create_init_config, write_bgp_vpnv4_config, write_vrf_config, write_acl_config, \
-    write_aggregations_config, write_interlinks_config, write_uplink_config
+    write_init_config, write_bgp_vpnv4_config, write_vrf_config, write_acl_config, \
+    write_aggregations_config, write_interlinks_config, write_uplink_config, \
+    get_shaping_policies, write_policies_config
 from datetime import datetime
 from openpyxl import load_workbook
 
@@ -187,7 +188,7 @@ def main(ssh_username, ssh_password, pe1_ip, pe2_ip, pe1_lo2, pe2_lo2, pe1_lo30,
     workbook.close()
 
     ################################################
-    # КОНФИГ
+    # ПРЕДОБРАБОТКА ДАННЫХ ДЛЯ КОНФИГА ВЛАНОВ
 
     # Создаем общий шаблон для ethernet-segment-id
     esi_template = get_esi_template(pe1_parameters['loopback30'])
@@ -237,24 +238,31 @@ def main(ssh_username, ssh_password, pe1_ip, pe2_ip, pe1_lo2, pe2_lo2, pe1_lo30,
         ncs_config_file = open(f'{config_file_path}/{ncs_config_filename}', 'w')
         se_config_file = open(f'{config_file_path}/{se_config_filename}', 'w')
 
-        # Общий конфиг:
+    ################################################
+    # КОНФИГ
+
         if not no_init:
+
+            # Общий конфиг:
+
             logger.info(f'Adding the baseline config for {pe_parameters["hostname"]}')
-            ncs_config_file.writelines(create_init_config(ncs_hostname,
-                                                          pe_parameters["loopback2"],
-                                                          pe_parameters["loopback30"]
-                                                          ))
+            write_init_config(ncs_hostname, pe_parameters["loopback2"],
+                              pe_parameters["loopback30"], ncs_config_file)
+            # iBGP соседи:
+
+            logger.info(f'{pe_parameters["hostname"]} Generating iBGP config')
+            bgp_vpnv4_neighbors = get_bgp_vpnv4_neighbors(pe_parameters['connection'])
+            write_bgp_vpnv4_config(bgp_vpnv4_neighbors, ncs_config_file)
+
+        # SHAPERS:
+        logger.info(f'{pe_parameters["hostname"]} Creating shaping policies config')
+        shaping_policies = get_shaping_policies(vlan_list)
+        write_policies_config(shaping_policies, ncs_config_file)
 
         # ACL:
         logger.info(f'{pe_parameters["hostname"]} Creating ACLs config')
         write_acl_config(acl_list, pe_parameters["hostname"],
                          ncs_config_file, se_config_file)
-
-        # iBGP соседи:
-        if not no_init:
-            logger.info(f'{pe_parameters["hostname"]} Generating iBGP config')
-            bgp_vpnv4_neighbors = get_bgp_vpnv4_neighbors(pe_parameters['connection'])
-            write_bgp_vpnv4_config(bgp_vpnv4_neighbors, ncs_config_file)
 
         # VRF:
         logger.info(f'{pe_parameters["hostname"]} Creating config for VRFs')
@@ -276,7 +284,7 @@ def main(ssh_username, ssh_password, pe1_ip, pe2_ip, pe1_lo2, pe2_lo2, pe1_lo30,
             write_interlinks_config(interlink_list, pe_parameters["hostname"],
                                     ncs_config_file)
 
-        # Выделение интерфейсы межкомплектам (26-32 порт):
+        # Выделение интерфейсов межкомплектам (26-32 порт):
         logger.info(f'{pe_parameters["hostname"]} Allocating interfaces for uplinks')
         write_uplink_config(uplink_list, pe_parameters["hostname"], ncs_config_file)
 
@@ -343,9 +351,9 @@ def main(ssh_username, ssh_password, pe1_ip, pe2_ip, pe1_lo2, pe2_lo2, pe1_lo30,
                         se_config_file.write(
                             "interface BVI{} vrf {}\n".format(se_bvi_id, vlan['svi_vrf']))
                     if vlan.get('svi_ip_secondary'):
-                        se_config_file.write(
-                            "interface BVI{} ipv4 address {} secondary\n".format(
-                                se_bvi_id, vlan['svi_ip_secondary']))
+                        for secondary_ip in vlan['svi_ip_secondary']:
+                            se_config_file.write(f"interface BVI{se_bvi_id} ipv4 address "
+                                                 f"{secondary_ip} secondary\n")
                     if vlan.get('svi_acl_in'):
                         se_config_file.write(
                             "interface BVI{} ipv4 access-group {} ingress\n".format(
@@ -394,9 +402,10 @@ def main(ssh_username, ssh_password, pe1_ip, pe2_ip, pe1_lo2, pe2_lo2, pe1_lo30,
                         se_config_file.write("interface TenGigE0/0/0/0.{} vrf {}\n"
                                              "".format(se_bvi_id, vlan['svi_vrf']))
                     if vlan.get('svi_ip_secondary'):
-                        se_config_file.write(
-                            "interface TenGigE0/0/0/0.{} ipv4 address {} secondary\n"
-                            "".format(se_bvi_id, vlan['svi_ip_secondary']))
+                        for secondary_ip in vlan['svi_ip_secondary']:
+                            se_config_file.write(f"interface TenGigE0/0/0/0.{se_bvi_id} "
+                                                 f"ipv4 address {secondary_ip} "
+                                                 f"secondary\n")
                     if vlan.get('svi_acl_in'):
                         se_config_file.write(
                             "interface TenGigE0/0/0/0.{} ipv4 access-group {} ingress\n"
@@ -848,7 +857,7 @@ def main(ssh_username, ssh_password, pe1_ip, pe2_ip, pe1_lo2, pe2_lo2, pe1_lo30,
                     ])
 
         ##################################################
-        # XC
+        # XC:
 
         # Генерируем EVPN_GROUP для XC:
 
@@ -1121,7 +1130,9 @@ def main(ssh_username, ssh_password, pe1_ip, pe2_ip, pe1_lo2, pe2_lo2, pe1_lo30,
         xconnects_to_junos = []
 
         se_loopback, se_loopback_backup = get_se_loopbacks30(se_location)
-        remotes_config_filename = re.search(r"(\S+)+PE\d", all_pe_parameters[0]["hostname"]).group(1) + 'remotes-configuration.txt'
+        remotes_config_filename = re.search(r"(\S+)+PE\d",
+                                            all_pe_parameters[0]["hostname"]).group(1) \
+                                  + 'remotes-configuration.txt'
 
         for xc in xc_list:
             if xc['evpn_group'] != 'EVPN_PPPoE':

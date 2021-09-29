@@ -65,10 +65,14 @@ def main():
               type=str,
               help='Username for ssh connection')
 @click.option("-p", "ssh_password", type=str, help='Password for ssh connection')
-def command_parse(ssh_username, ssh_password, ip_addresses):
+@click.option("--one-pe", "one_pe",
+              type=str,
+              is_flag=True,
+              help='Use this flag if there is only one PE')
+def command_parse(ssh_username, ssh_password, ip_addresses, one_pe):
     """Parse cisco 7600's config"""
     pe1_ip, pe2_ip = ip_addresses
-    parser.main(ssh_username, ssh_password, pe1_ip, pe2_ip)
+    parser.main(ssh_username, ssh_password, pe1_ip, pe2_ip, one_pe=one_pe)
 
 
 @main.command('upload', help_priority=3)
@@ -92,7 +96,7 @@ def command_upload(username, password, validate, ip_addresses):
 
 
 @main.command('generate', help_priority=1)
-@click.argument('ip_addresses', nargs=2)
+@click.argument('old_ip_addresses', nargs=2)
 @click.option("-u", "ssh_username", type=str, help='Username for ssh connection')
 @click.option("-p", "ssh_password",
               type=str,
@@ -134,11 +138,11 @@ def command_upload(username, password, validate, ip_addresses):
               prompt='Введите местонахождение SE',
               help='SE location')
 @click.option("-y", "answer_yes", is_flag=True, help='Answer yes automatically')
-def command_generate(ssh_username, ssh_password, ip_addresses, pe1_lo2, pe2_lo2,
+def command_generate(ssh_username, ssh_password, old_ip_addresses, pe1_lo2, pe2_lo2,
                      pe1_lo30, pe2_lo30, evi_bgp_rt_offset, se_evi_offset,
                      se_bvi_offset, se_location, no_remotes, no_init, answer_yes=False):
     """Generate config for NCS, SE and remotes"""
-    pe1_ip, pe2_ip = ip_addresses
+    pe1_ip, pe2_ip = old_ip_addresses
     generator.main(ssh_username, ssh_password, pe1_ip, pe2_ip, pe1_lo2, pe2_lo2,
                    pe1_lo30, pe2_lo30, evi_bgp_rt_offset, se_evi_offset, se_bvi_offset,
                    se_location, no_remotes, no_init, answer_yes)

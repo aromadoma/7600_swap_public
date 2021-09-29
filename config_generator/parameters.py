@@ -1,10 +1,12 @@
 import os
 import json
 
-SCRIPT_PARAMETERS_PATH = os.path.join(os.path.dirname(__file__), '.data/parameters.json')
+SCRIPT_PARAMETERS_PATH = os.path.join(os.path.dirname(__file__),
+                                      '.data/parameters.json')
 
 
 def get_script_parameters():
+
     with open(SCRIPT_PARAMETERS_PATH, 'r') as f:
         parameters = json.load(f)
     return parameters
