@@ -5,6 +5,5 @@ config_generator/.data/parameters.json
 dist/
 *test*
 *TEST*
-README
 *.swp
 *.bkp
