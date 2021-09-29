@@ -5,16 +5,16 @@
 
 - Установить на линуксовой машине python3, git, poetry, make:
 
-	sudo apt-get python3 git make
-	curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python3 -
+		sudo apt-get python3 git make
+		curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python3 -
 
 - Склонировать репозиторий с гихаба:
 
-	git clone git@github.com:aromadoma/7600_swap_public.git
+		git clone git@github.com:aromadoma/7600_swap_public.git
 
 - Зайти в эту папку и выполнить установку скрипта:
 
-	make install
+		make install
 
 - Закинуть руками файл с параметрами parameters.json в папку
 	<путь установки>/config_generator/.data/
